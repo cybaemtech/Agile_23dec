@@ -61,6 +61,16 @@ const workItemFormSchema = z.object({
 }, {
   message: "Estimate is required",
   path: ["estimate"],
+}).refine((data) => {
+  // Current Behavior and Expected Behavior are required for BUG types
+  if (data.type === 'BUG') {
+    return data.currentBehavior && data.currentBehavior.trim().length > 0 &&
+           data.expectedBehavior && data.expectedBehavior.trim().length > 0;
+  }
+  return true;
+}, {
+  message: "Current Behavior and Expected Behavior are required for Bugs",
+  path: ["currentBehavior"],
 });
 
 type WorkItemFormValues = z.infer<typeof workItemFormSchema>;
@@ -480,7 +490,7 @@ export function EditItemModal({
                     name="currentBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Current Behavior</FormLabel>
+                        <FormLabel className="text-sm">Current Behavior <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
                         </FormControl>
@@ -494,7 +504,7 @@ export function EditItemModal({
                     name="expectedBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Expected Behavior</FormLabel>
+                        <FormLabel className="text-sm">Expected Behavior <span className="text-red-500">*</span></FormLabel>
                         <FormControl>
                           <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
                         </FormControl>
