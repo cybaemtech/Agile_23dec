@@ -474,37 +474,35 @@ export function EditItemModal({
                   />
                 </div>
 
-                {['DEFECT', 'PROD_INCIDENT'].includes(form.watch('bugType') || '') && (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-4 border-t border-blue-200">
-                    <FormField
-                      control={form.control}
-                      name="currentBehavior"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Current Behavior <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4 pt-4 border-t border-blue-200">
+                  <FormField
+                    control={form.control}
+                    name="currentBehavior"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Current Behavior</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                    <FormField
-                      control={form.control}
-                      name="expectedBehavior"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm">Expected Behavior <span className="text-red-500">*</span></FormLabel>
-                          <FormControl>
-                            <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                )}
+                  <FormField
+                    control={form.control}
+                    name="expectedBehavior"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-sm">Expected Behavior</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             )}
 
