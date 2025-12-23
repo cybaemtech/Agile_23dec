@@ -123,6 +123,11 @@ export function EditItemModal({
 
   // Watch projectId to update dependent queries
   const selectedProjectId = form.watch("projectId");
+  
+  // Watch behavior fields to ensure they're always in sync
+  const watchedCurrentBehavior = form.watch("currentBehavior");
+  const watchedExpectedBehavior = form.watch("expectedBehavior");
+  const watchedBugType = form.watch("bugType");
 
   // Fetch the fresh work item data to ensure we have all fields including bug fields
   const { data: freshWorkItem } = useQuery<WorkItem>({
@@ -208,9 +213,13 @@ export function EditItemModal({
   // Update form when displayWorkItem changes (which includes fresh data with bug fields)
   useEffect(() => {
     if (displayWorkItem && isOpen) {
-      console.log("=== EDIT MODAL: Loading work item ===");
-      console.log("Work item data:", displayWorkItem);
-      console.log("Bug fields - bugType:", displayWorkItem.bugType, "severity:", displayWorkItem.severity, "referenceUrl:", displayWorkItem.referenceUrl);
+      console.log("📋 EDIT MODAL: Fresh item loaded:", displayWorkItem);
+      console.log("📋 Bug fields in item:", {
+        bugType: displayWorkItem.bugType,
+        severity: displayWorkItem.severity,
+        currentBehavior: displayWorkItem.currentBehavior,
+        expectedBehavior: displayWorkItem.expectedBehavior,
+      });
 
       // Format dates for the form - use local date to avoid timezone issues
       const formatLocalDateForInput = (dateValue: string | Date | null): string | null => {
@@ -247,21 +256,18 @@ export function EditItemModal({
         referenceUrl: displayWorkItem.referenceUrl || "",
       };
 
-      console.log("Form data prepared for reset:", formData);
-      console.log("About to reset form with bugType:", formData.bugType, "severity:", formData.severity);
-      console.log("About to reset form with currentBehavior:", formData.currentBehavior);
-      console.log("About to reset form with expectedBehavior:", formData.expectedBehavior);
+      console.log("📋 Form data to reset:", formData);
       form.reset(formData);
 
-      // Log after reset to verify
+      // Verify form was reset
       setTimeout(() => {
-        console.log("After reset - form values:");
-        console.log("bugType:", form.getValues("bugType"));
-        console.log("severity:", form.getValues("severity"));
-        console.log("referenceUrl:", form.getValues("referenceUrl"));
-        console.log("currentBehavior:", form.getValues("currentBehavior"));
-        console.log("expectedBehavior:", form.getValues("expectedBehavior"));
-      }, 0);
+        console.log("📋 Form values after reset:", {
+          bugType: form.getValues("bugType"),
+          currentBehavior: form.getValues("currentBehavior"),
+          expectedBehavior: form.getValues("expectedBehavior"),
+          severity: form.getValues("severity"),
+        });
+      }, 50);
     }
   }, [displayWorkItem, isOpen, form]);
 
@@ -490,9 +496,9 @@ export function EditItemModal({
                     name="currentBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Current Behavior <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel className="text-sm">Current Behavior {['DEFECT', 'PROD_INCIDENT'].includes(watchedBugType || '') && <span className="text-red-500">*</span>}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
+                          <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={watchedCurrentBehavior || ""} onChange={(e) => { field.onChange(e); }} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -504,9 +510,9 @@ export function EditItemModal({
                     name="expectedBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Expected Behavior <span className="text-red-500">*</span></FormLabel>
+                        <FormLabel className="text-sm">Expected Behavior {['DEFECT', 'PROD_INCIDENT'].includes(watchedBugType || '') && <span className="text-red-500">*</span>}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
+                          <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={watchedExpectedBehavior || ""} onChange={(e) => { field.onChange(e); }} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>

@@ -585,9 +585,9 @@ export function CreateItemModal({
                     name="currentBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Current Behavior</FormLabel>
+                        <FormLabel className="text-sm">Current Behavior {['DEFECT', 'PROD_INCIDENT'].includes(bugType) && <span className="text-red-500">*</span>}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} placeholder="What is happening?" rows={2} value={field.value || ""} className="text-sm" />
+                          <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -599,9 +599,9 @@ export function CreateItemModal({
                     name="expectedBehavior"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-sm">Expected Behavior</FormLabel>
+                        <FormLabel className="text-sm">Expected Behavior {['DEFECT', 'PROD_INCIDENT'].includes(bugType) && <span className="text-red-500">*</span>}</FormLabel>
                         <FormControl>
-                          <Textarea {...field} placeholder="What should happen?" rows={2} value={field.value || ""} className="text-sm" />
+                          <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
