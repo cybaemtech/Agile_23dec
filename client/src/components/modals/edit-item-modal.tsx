@@ -114,6 +114,22 @@ export function EditItemModal({
   // Watch projectId to update dependent queries
   const selectedProjectId = form.watch("projectId");
 
+  // Fetch the fresh work item data to ensure we have all fields including bug fields
+  const { data: freshWorkItem } = useQuery<WorkItem>({
+    queryKey: [`/work-items/${workItem?.id}`],
+    queryFn: async () => {
+      if (!workItem?.id) return workItem;
+      const item = await apiGet(`/work-items/${workItem.id}`);
+      console.log("Fresh work item fetched:", item);
+      return item;
+    },
+    enabled: !!workItem?.id && isOpen,
+    staleTime: 0, // Always refetch to get fresh data
+  });
+
+  // Use the fresh work item if available, otherwise use the prop
+  const displayWorkItem = freshWorkItem || workItem;
+
   // Fetch current user for role-based restrictions
   const { data: currentUser } = useQuery<User>({
     queryKey: ['/auth/user'],
@@ -179,12 +195,12 @@ export function EditItemModal({
     }
   };
 
-  // Update form when workItem changes
+  // Update form when displayWorkItem changes (which includes fresh data with bug fields)
   useEffect(() => {
-    if (workItem && isOpen) {
+    if (displayWorkItem && isOpen) {
       console.log("=== EDIT MODAL: Loading work item ===");
-      console.log("Work item data:", workItem);
-      console.log("Bug fields - bugType:", workItem.bugType, "severity:", workItem.severity, "referenceUrl:", workItem.referenceUrl);
+      console.log("Work item data:", displayWorkItem);
+      console.log("Bug fields - bugType:", displayWorkItem.bugType, "severity:", displayWorkItem.severity, "referenceUrl:", displayWorkItem.referenceUrl);
 
       // Format dates for the form - use local date to avoid timezone issues
       const formatLocalDateForInput = (dateValue: string | Date | null): string | null => {
@@ -196,35 +212,37 @@ export function EditItemModal({
         const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
       };
-      
-      const startDateFormatted = formatLocalDateForInput(workItem.startDate);
-      const endDateFormatted = formatLocalDateForInput(workItem.endDate);
+
+      const startDateFormatted = formatLocalDateForInput(displayWorkItem.startDate);
+      const endDateFormatted = formatLocalDateForInput(displayWorkItem.endDate);
 
       const formData: WorkItemFormValues = {
-        title: workItem.title,
-        description: workItem.description || "",
-        tags: workItem.tags || "",
-        status: workItem.status,
-        priority: workItem.priority || "MEDIUM",
-        parentId: workItem.parentId || null,
-        assigneeId: workItem.assigneeId || null,
-        estimate: workItem.estimate?.toString() || "",
-        actualHours: workItem.actualHours?.toString() || "",
+        title: displayWorkItem.title,
+        description: displayWorkItem.description || "",
+        tags: displayWorkItem.tags || "",
+        status: displayWorkItem.status,
+        priority: displayWorkItem.priority || "MEDIUM",
+        parentId: displayWorkItem.parentId || null,
+        assigneeId: displayWorkItem.assigneeId || null,
+        estimate: displayWorkItem.estimate?.toString() || "",
+        actualHours: displayWorkItem.actualHours?.toString() || "",
         startDate: startDateFormatted,
         endDate: endDateFormatted,
-        projectId: workItem.projectId,
-        type: workItem.type,
-        bugType: (workItem.bugType || "BUG") as string,
-        severity: (workItem.severity || "LOW") as string,
-        currentBehavior: workItem.currentBehavior || "",
-        expectedBehavior: workItem.expectedBehavior || "",
-        referenceUrl: workItem.referenceUrl || "",
+        projectId: displayWorkItem.projectId,
+        type: displayWorkItem.type,
+        bugType: (displayWorkItem.bugType || "BUG") as string,
+        severity: (displayWorkItem.severity || "LOW") as string,
+        currentBehavior: displayWorkItem.currentBehavior || "",
+        expectedBehavior: displayWorkItem.expectedBehavior || "",
+        referenceUrl: displayWorkItem.referenceUrl || "",
       };
 
       console.log("Form data prepared for reset:", formData);
       console.log("About to reset form with bugType:", formData.bugType, "severity:", formData.severity);
+      console.log("About to reset form with currentBehavior:", formData.currentBehavior);
+      console.log("About to reset form with expectedBehavior:", formData.expectedBehavior);
       form.reset(formData);
-      
+
       // Log after reset to verify
       setTimeout(() => {
         console.log("After reset - form values:");
@@ -235,7 +253,7 @@ export function EditItemModal({
         console.log("expectedBehavior:", form.getValues("expectedBehavior"));
       }, 0);
     }
-  }, [workItem, isOpen, form]);
+  }, [displayWorkItem, isOpen, form]);
 
   // Handle form submission
   const onSubmit = async (data: WorkItemFormValues) => {
@@ -339,7 +357,7 @@ export function EditItemModal({
 
     try {
       await apiRequest("DELETE", `/work-items/${workItem.id}`);
-      
+
       toast({
         title: "Item deleted",
         description: "The work item has been deleted successfully.",
@@ -465,7 +483,7 @@ export function EditItemModal({
                         <FormItem>
                           <FormLabel className="text-sm">Current Behavior <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" />
+                            <Textarea {...field} placeholder="What is happening?" rows={2} className="text-sm" value={field.value || ""} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -479,7 +497,7 @@ export function EditItemModal({
                         <FormItem>
                           <FormLabel className="text-sm">Expected Behavior <span className="text-red-500">*</span></FormLabel>
                           <FormControl>
-                            <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" />
+                            <Textarea {...field} placeholder="What should happen?" rows={2} className="text-sm" value={field.value || ""} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>

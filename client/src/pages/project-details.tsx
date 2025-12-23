@@ -1463,7 +1463,19 @@ export default function ProjectDetails() {
                     })
                     : []
                   }
-                  onItemEdit={(item) => openModal("editItem", { workItem: item })}
+                  onItemEdit={async (item) => {
+                    try {
+                      // Fetch full work item details from API
+                      const fullItem = await apiGet(`/work-items/${item.id}`);
+                      openModal("editItem", { workItem: fullItem });
+                    } catch (err) {
+                      toast({
+                        title: "Error loading item",
+                        description: "Could not load full item details. Please try again.",
+                        variant: "destructive",
+                      });
+                    }
+                  }}
                   onItemDelete={(item) => openModal("deleteItem", { workItem: item })}
                   onQuickAction={openQuickAction}
                   onStatusChange={async (itemId, status) => {
